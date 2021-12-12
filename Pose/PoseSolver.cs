@@ -31,7 +31,11 @@ namespace Kalidokit
 
             if(EnableLegs)
             {
-                Debug.Log("现在还不支持腿部计算");
+                LegResult legResult = CalcLeg(poseLandmarks);
+                result.LeftUpperLeg = legResult.Left.UpperLeg;
+                result.LeftLowerLeg = legResult.Left.LowerLeg;
+                result.RightUpperLeg = legResult.Right.UpperLeg;
+                result.RightLowerLeg = legResult.Right.LowerLeg;
             }
 
             return result;
@@ -178,6 +182,53 @@ namespace Kalidokit
             {
                 Hips = hips,
                 Spine = spine
+            };
+        }
+        public static LegResult CalcLeg(List<CapturePoint> poseLandmark)
+        {
+            Vector3 poseLandmark23 = VectorUtils.GenerateVector3(poseLandmark[23]),
+                    poseLandmark24 = VectorUtils.GenerateVector3(poseLandmark[24]),
+                    poseLandmark25 = VectorUtils.GenerateVector3(poseLandmark[25]),
+                    poseLandmark26 = VectorUtils.GenerateVector3(poseLandmark[26]),
+                    poseLandmark27 = VectorUtils.GenerateVector3(poseLandmark[27]),
+                    poseLandmark28 = VectorUtils.GenerateVector3(poseLandmark[28]);
+
+            Vector3 LeftUpperLeg = VectorUtils.FindRotation(poseLandmark23, poseLandmark25);
+            Vector3 RightUpperLeg = VectorUtils.FindRotation(poseLandmark24, poseLandmark26);
+            RightUpperLeg.z = Helper.Clamp(RightUpperLeg.z - 0.5f, -0.5f, 0);
+            RightUpperLeg.y = 0; //Y Axis is not correct
+            LeftUpperLeg.z = Helper.Clamp(LeftUpperLeg.z - 0.5f, -0.5f, 0);
+            LeftUpperLeg.y = 0; //Y Axis is not correct
+
+            Vector3 LeftLowerLeg = VectorUtils.FindRotation(poseLandmark25, poseLandmark27);
+            Vector3 RightLowerLeg = VectorUtils.FindRotation(poseLandmark26, poseLandmark28);
+            RightLowerLeg.x = VectorUtils.AngleBetween3DCoords(poseLandmark23, poseLandmark25, poseLandmark27);
+            RightLowerLeg.y = 0; // Y Axis not correct
+            RightLowerLeg.z = 0; // Z Axis not correct
+            LeftLowerLeg.x = VectorUtils.AngleBetween3DCoords(poseLandmark24, poseLandmark26, poseLandmark28);
+            LeftLowerLeg.y = 0; // Y Axis not correct
+            LeftLowerLeg.z = 0; // Z Axis not correct
+
+            LegStruct left = RigLeg(LeftUpperLeg, LeftLowerLeg, "Left"),
+                      right = RigLeg(RightUpperLeg, RightLowerLeg, "Right");
+
+            return new LegResult
+            {
+                Left = left,
+                Right = right
+            };
+
+        }
+        public static LegStruct RigLeg(Vector3 UpperLeg, Vector3 LowerLeg, string side)
+        {
+            int invert = side.Equals("Right") ? 1 : -1;
+            UpperLeg.z = UpperLeg.z * -2.3f * invert;
+            UpperLeg.x = Helper.Clamp(UpperLeg.z * 0.1f * invert, -0.5f, Mathf.PI);
+            LowerLeg.x = LowerLeg.x * -2.14f * 1.3f;
+            return new LegStruct
+            {
+                UpperLeg = UpperLeg,
+                LowerLeg = LowerLeg
             };
         }
     }
