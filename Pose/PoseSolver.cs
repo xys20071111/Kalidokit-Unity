@@ -167,7 +167,7 @@ namespace Kalidokit
 
             return RigHips(hips, spine);
         }
-        public static HipsResult RigHips(HipsStruct hips, Vector3 spine)
+        private static HipsResult RigHips(HipsStruct hips, Vector3 spine)
         {
             hips.rotation.x *= Mathf.PI;
             hips.rotation.y *= Mathf.PI;
@@ -184,7 +184,7 @@ namespace Kalidokit
                 Spine = spine
             };
         }
-        public static LegResult CalcLeg(List<CapturePoint> poseLandmark)
+        private static LegResult CalcLeg(List<CapturePoint> poseLandmark)
         {
             Vector3 poseLandmark23 = VectorUtils.GenerateVector3(poseLandmark[23]),
                     poseLandmark24 = VectorUtils.GenerateVector3(poseLandmark[24]),
@@ -219,7 +219,7 @@ namespace Kalidokit
             };
 
         }
-        public static LegStruct RigLeg(Vector3 UpperLeg, Vector3 LowerLeg, string side)
+        private static LegStruct RigLeg(Vector3 UpperLeg, Vector3 LowerLeg, string side)
         {
             int invert = side.Equals("Right") ? 1 : -1;
             UpperLeg.z = UpperLeg.z * -2.3f * invert;
