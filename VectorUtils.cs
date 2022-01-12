@@ -10,6 +10,10 @@ namespace Kalidokit
         {
             return new Vector3(point.x, point.y, point.z);
         }
+        public static Vector2 GenerateVector2(Point point)
+        {
+            return new Vector2(point.x, point.y);
+        }
         public static float Find2DAngle(float cx, float cy, float ex, float ey)
         {
             float dy = ey - cy;

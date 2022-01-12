@@ -68,14 +68,14 @@ namespace Kalidokit
         }
         public static float EyeLidRatio(Point eyeOuterCorner, Point eyeInnerCorner, Point eyeOuterUpperLid, Point eyeMidUpperLid, Point eyeInnerUpperLid, Point eyeOuterLowerLid, Point eyeMidLowerLid, Point eyeInnerLowerLid)
         {
-            Vector3 eyeOuterCornerVector = VectorUtils.GenerateVector3(eyeOuterCorner),
-                    eyeInnerCornerVector = VectorUtils.GenerateVector3(eyeInnerCorner),
-                    eyeOuterUpperLidVector = VectorUtils.GenerateVector3(eyeOuterUpperLid),
-                    eyeMidUpperLidVector = VectorUtils.GenerateVector3(eyeMidUpperLid),
-                    eyeInnerUpperLidVector = VectorUtils.GenerateVector3(eyeInnerUpperLid),
-                    eyeOuterLowerLidVector = VectorUtils.GenerateVector3(eyeOuterLowerLid),
-                    eyeMidLowerLidVector = VectorUtils.GenerateVector3(eyeMidLowerLid),
-                    eyeInnerLowerLidVector = VectorUtils.GenerateVector3(eyeInnerLowerLid);
+            Vector2 eyeOuterCornerVector = VectorUtils.GenerateVector2(eyeOuterCorner),
+                    eyeInnerCornerVector = VectorUtils.GenerateVector2(eyeInnerCorner),
+                    eyeOuterUpperLidVector = VectorUtils.GenerateVector2(eyeOuterUpperLid),
+                    eyeMidUpperLidVector = VectorUtils.GenerateVector2(eyeMidUpperLid),
+                    eyeInnerUpperLidVector = VectorUtils.GenerateVector2(eyeInnerUpperLid),
+                    eyeOuterLowerLidVector = VectorUtils.GenerateVector2(eyeOuterLowerLid),
+                    eyeMidLowerLidVector = VectorUtils.GenerateVector2(eyeMidLowerLid),
+                    eyeInnerLowerLidVector = VectorUtils.GenerateVector2(eyeInnerLowerLid);
             float eyeWidth = Vector3.Distance(eyeOuterCornerVector, eyeInnerCornerVector); //(eyeOuterCorner as Vector).distance(eyeInnerCorner as Vector, 2)
             float eyeOuterLidDistance = Vector3.Distance(eyeOuterUpperLidVector, eyeOuterLowerLidVector); //(eyeOuterUpperLid as Vector).distance(eyeOuterLowerLid as Vector, 2)
             float eyeMidLidDistance = Vector3.Distance(eyeMidUpperLidVector, eyeMidLowerLidVector); //(eyeMidUpperLid as Vector).distance(eyeMidLowerLid as Vector, 2)
@@ -89,11 +89,11 @@ namespace Kalidokit
         {
             if (side.Equals("left"))
             {
-                Vector3 eyeOuterCorner = VectorUtils.GenerateVector3(poseLandmark[LeftPupilIndex[0]]);
-                Vector3 eyeInnerCorner = VectorUtils.GenerateVector3(poseLandmark[LeftPupilIndex[1]]);
+                Vector2 eyeOuterCorner = VectorUtils.GenerateVector2(poseLandmark[LeftPupilIndex[0]]);
+                Vector2 eyeInnerCorner = VectorUtils.GenerateVector2(poseLandmark[LeftPupilIndex[1]]);
                 float eyeWidth = Vector3.Distance(eyeOuterCorner, eyeInnerCorner); //eyeOuterCorner.distance(eyeInnerCorner, 2);
-                Vector3 midPoint = Vector3.Lerp(eyeOuterCorner, eyeInnerCorner, 0.5f); //eyeOuterCorner.lerp(eyeInnerCorner, 0.5);
-                Vector3 pupil = VectorUtils.GenerateVector3(poseLandmark[LeftPupilIndex[0]]);
+                Vector2 midPoint = Vector3.Lerp(eyeOuterCorner, eyeInnerCorner, 0.5f); //eyeOuterCorner.lerp(eyeInnerCorner, 0.5);
+                Vector2 pupil = VectorUtils.GenerateVector2(poseLandmark[LeftPupilIndex[0]]);
                 float dx = midPoint.x - pupil.x;
                 //eye center y is slightly above midpoint
                 float dy = midPoint.y - eyeWidth * 0.075f - pupil.y;
@@ -107,11 +107,11 @@ namespace Kalidokit
             }
             else
             {
-                Vector3 eyeOuterCorner = VectorUtils.GenerateVector3(poseLandmark[RightPupilIndex[0]]);
-                Vector3 eyeInnerCorner = VectorUtils.GenerateVector3(poseLandmark[RightPupilIndex[1]]);
+                Vector2 eyeOuterCorner = VectorUtils.GenerateVector2(poseLandmark[RightPupilIndex[0]]);
+                Vector2 eyeInnerCorner = VectorUtils.GenerateVector2(poseLandmark[RightPupilIndex[1]]);
                 float eyeWidth = Vector3.Distance(eyeOuterCorner, eyeInnerCorner); //eyeOuterCorner.distance(eyeInnerCorner, 2);
-                Vector3 midPoint = Vector3.Lerp(eyeOuterCorner, eyeInnerCorner, 0.5f); //eyeOuterCorner.lerp(eyeInnerCorner, 0.5);
-                Vector3 pupil = VectorUtils.GenerateVector3(poseLandmark[RightPupilIndex[0]]);
+                Vector2 midPoint = Vector3.Lerp(eyeOuterCorner, eyeInnerCorner, 0.5f); //eyeOuterCorner.lerp(eyeInnerCorner, 0.5);
+                Vector2 pupil = VectorUtils.GenerateVector2(poseLandmark[RightPupilIndex[0]]);
                 float dx = midPoint.x - pupil.x;
                 //eye center y is slightly above midpoint
                 float dy = midPoint.y - eyeWidth * 0.075f - pupil.y;
