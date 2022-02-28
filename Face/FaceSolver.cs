@@ -104,14 +104,6 @@ namespace Kalidokit
         }
         private static EyeStruct CalcEyes(List<CapturePoint> poseLandmark, float high = 0.85f, float low = 0.55f)
         {
-            if (poseLandmark.Count != 478)
-            {
-                return new EyeStruct
-                {
-                    l = 1,
-                    r = 1,
-                };
-            }
             //open [0,1]
             EyeOpenStruct leftEyeLid = EyeUtils.GetEyeOpen(poseLandmark, "left");
             EyeOpenStruct rightEyeLid = EyeUtils.GetEyeOpen(poseLandmark, "right");
