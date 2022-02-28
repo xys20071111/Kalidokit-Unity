@@ -12,6 +12,6 @@ namespace Kalidokit
     }
     public class CaptureData
     {
-        public List<CapturePoint> faceLandmarks, poseLandmarks, rightHandLandmarks, leftHandLandmarks;
+        public List<CapturePoint> faceLandmarks, poseLandmarks, worldPoseLandmarks, rightHandLandmarks, leftHandLandmarks;
     }
 }
