@@ -26,7 +26,7 @@ if (cd.faceLandmarks.Count > 0)
 ```
 
 ## 目前我使用的上半身绑定代码
-'''
+```
 if (cd.poseLandmarks.Count > 0)
 {
   PoseStruct pose = PoseSolver.Solve(cd.worldPoseLandmarks, cd.poseLandmarks, false);
@@ -40,4 +40,4 @@ if (cd.poseLandmarks.Count > 0)
     handRight.localRotation = Quaternion.Euler(pose.RightHand * Mathf.Rad2Deg);
     }, null);
 }
-'''
+```
