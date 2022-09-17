@@ -10,9 +10,11 @@
 ```
 using System;
 using System.IO;
+using System.Security.Cryptography;
 using System.Diagnostics;
 using Newtonsoft.Json;
 using VRM;
+using UniGLTF;
 using UnityEngine;
 using Kalidokit;
 
@@ -34,10 +36,49 @@ public class FaceCaptureLauncher : MonoBehaviour
     private string PY_RUNTIME = @$"{Application.dataPath}\StreamingAssets\python\python.exe";
     private string PY_SCRIPT = @$"\"{Application.dataPath}\StreamingAssets\capture\main.py\"";
 #endif
-    private Process captureProcess;
+    private Process captureProcess = null;
     // Start is called before the first frame update
     void Start()
     {
+        //这里是我自己项目里的模型管理器，判断模型是否加载的
+        RuntimeGltfInstance model = ModelManager.GetCurrentModel();
+        if (model == null)
+        {
+            UnityEngine.Debug.LogWarning("在没有加载模型的情况下尝试启动捕获");
+            Destroy(this);
+            return;
+        }
+        //验证脚本是不是被篡改了
+        using (SHA256 hasher = SHA256.Create())
+        {
+            using (FileStream fs = File.Open(PY_SCRIPT.Replace("'",""), FileMode.Open))
+            {
+                try
+                {
+                    fs.Position = 0;
+                    byte[] hashValue = hasher.ComputeHash(fs);
+                    string fileHash = BitConverter.ToString(hashValue).Replace("-", "").ToLower();
+                    if (fileHash != "d86058a21d16a1805926fcb56b2189f1338bd37144aa1b688883357fb9f8e6a5")
+                    {
+                        UnityEngine.Debug.LogError("面捕脚本遭到篡改");
+                        Destroy(this);
+                    }
+                }
+                catch (IOException e)
+                {
+                    UnityEngine.Debug.LogError($"I/O Exception: {e.Message}");
+                    Destroy(this);
+                    return;
+                }
+                catch (UnauthorizedAccessException e)
+                {
+                    UnityEngine.Debug.LogError($"Access Exception: {e.Message}");
+                    Destroy(this);
+                    return;
+                }
+            }
+        }
+        //获取模型骨骼节点
         head = GameObject.Find("J_Bip_C_Head").transform;
         upperArmLeft = GameObject.Find("J_Bip_L_UpperArm").transform;
         lowerArmLeft = GameObject.Find("J_Bip_L_LowerArm").transform;
@@ -46,7 +87,8 @@ public class FaceCaptureLauncher : MonoBehaviour
         lowerArmRight = GameObject.Find("J_Bip_R_LowerArm").transform;
         handRight = GameObject.Find("J_Bip_R_Hand").transform;
         spine = GameObject.Find("J_Bip_C_Spine").transform;
-        blendShapeProxy = GameObject.Find("Model").GetComponent<VRMBlendShapeProxy>();
+        blendShapeProxy = model.GetComponent<VRMBlendShapeProxy>();
+        //运行面捕脚本
         captureProcess = new Process();
         captureProcess.StartInfo.FileName = PY_RUNTIME;
         captureProcess.StartInfo.Arguments = PY_SCRIPT;
@@ -64,8 +106,8 @@ public class FaceCaptureLauncher : MonoBehaviour
         {
             string jsonString = captureProcess.StandardOutput.ReadLine();
             CaptureData cd = JsonConvert.DeserializeObject<CaptureData>(jsonString);
-            // 面部
-            if (cd.faceLandmarks.Count > 0) {
+            if (cd.faceLandmarks.Count > 0)
+            {
                 FaceStruct face = FaceSolver.Solve(cd.faceLandmarks, 480, 640, true);
                 head.localRotation = Quaternion.Euler(new Vector3(-face.Head.rotate.x, face.Head.rotate.y, face.Head.rotate.z) * Mathf.Rad2Deg);
                 blendShapeProxy.ImmediatelySetValue(BlendShapePreset.A, face.Mouth.shape.A);
@@ -76,7 +118,6 @@ public class FaceCaptureLauncher : MonoBehaviour
                 blendShapeProxy.ImmediatelySetValue(BlendShapePreset.Blink_L, 1 - face.Eye.l);
                 blendShapeProxy.ImmediatelySetValue(BlendShapePreset.Blink_R, 1 - face.Eye.r);
             }
-            // 上半身
             if (cd.poseLandmarks.Count > 0)
             {
                 PoseStruct pose = PoseSolver.Solve(cd.worldPoseLandmarks, cd.poseLandmarks, false);
@@ -96,8 +137,68 @@ public class FaceCaptureLauncher : MonoBehaviour
     }
     void OnDestroy()
     {
-        captureProcess.Kill();
+        if(captureProcess != null)
+        {
+            captureProcess.Kill();
+        }
     }
 }
 
+
+```
+
+### 面捕脚本
+```
+#!/usr/bin/python3
+import sys
+import mediapipe as mp
+import cv2
+import json
+
+
+def main():
+    cam = cv2.VideoCapture(0)
+    pose_detector = mp.solutions.holistic.Holistic(min_detection_confidence=0.7, min_tracking_confidence=0.7, model_complexity=1,smooth_landmarks=True, refine_face_landmarks=True)
+    try:
+        while True:
+            data = {
+                'poseLandmarks': [],
+                'worldPoseLandmarks': [],
+                'worldPoseLandmarks': [],
+                'rightHandLandmarks': [],
+                'leftHandLandmarks': [],
+                'faceLandmarks': []
+            }
+            success, image = cam.read()
+            if not success:
+                continue
+            img_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+            result_pose = pose_detector.process(img_rgb)
+            if result_pose.pose_landmarks:
+                for point in result_pose.pose_landmarks.landmark:
+                    data['poseLandmarks'].append({'x': point.x, 'y': point.y, 'z': 0, 'visibility': point.visibility})
+                for point in result_pose.pose_world_landmarks.landmark:
+                    data['worldPoseLandmarks'].append({'x': point.x, 'y': point.y, 'z': point.z, 'visibility': point.visibility})
+
+            if result_pose.left_hand_landmarks:
+                for point in result_pose.left_hand_landmarks.landmark:
+                    data['leftHandLandmarks'].append({'x': point.x, 'y': point.y, 'z': 0, 'visibility': point.visibility})
+
+            if result_pose.right_hand_landmarks:
+                for point in result_pose.right_hand_landmarks.landmark:
+                    data['rightHandLandmarks'].append({'x': point.x, 'y': point.y, 'z': 0, 'visibility': point.visibility})
+
+            if result_pose.face_landmarks:
+                for point in result_pose.face_landmarks.landmark:
+                    data['faceLandmarks'].append({'x': point.x, 'y': point.y, 'z': point.z, 'visibility': point.visibility})
+
+            print(json.dumps(data))
+
+    except KeyboardInterrupt:
+        socket.terminate()
+        sys.exit(0)
+
+
+if __name__ == '__main__':
+    main()
 ```
